@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Almacén</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Gestión de Almacén</h1>
+      <nav>
+        <a href="home.html">Inicio</a>
+        <a href="almacen.html" class="active">Almacén</a>
+        <a href="usuarios.html">Usuarios</a>
+        <a href="#" id="logout">Cerrar Sesión</a>
+      </nav>
+    </header>
+
+    <div class="container">
+      <button id="addProductBtn">Agregar Producto</button>
+
+      <div id="productFormContainer" class="hidden">
+        <h2>Nuevo Producto</h2>
+        <form id="productForm">
+          <input type="hidden" id="productId" />
+          <div class="form-group">
+            <label for="productCode">Código:</label>
+            <input type="text" id="productCode" required />
+          </div>
+          <div class="form-group">
+            <label for="productName">Nombre:</label>
+            <input type="text" id="productName" required />
+          </div>
+          <div class="form-group">
+            <label for="productColor">Color:</label>
+            <input type="text" id="productColor" required />
+          </div>
+          <div class="form-group">
+            <label for="productBrand">Marca:</label>
+            <input type="text" id="productBrand" required />
+          </div>
+          <div class="form-group">
+            <label for="productQuantity">Cantidad:</label>
+            <input type="number" id="productQuantity" min="0" required />
+          </div>
+          <div class="form-actions">
+            <button type="submit">Guardar</button>
+            <button type="button" id="cancelProductBtn">Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="product-list" id="productListContainer">
+        <!-- Productos se cargarán aquí -->
+      </div>
+    </div>
+
+    <div id="notifications-container"></div>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/almacen.js"></script>
+  </body>
+</html>

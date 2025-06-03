@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inventario - Sistema de Gestión</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Inventario de Productos</h1>
+      <nav>
+        <a href="home.html" class="active">Inicio</a>
+        <a href="almacen.html">Almacén</a>
+        <a href="usuarios.html">Usuarios</a>
+        <a href="#" id="logout">Cerrar Sesión</a>
+      </nav>
+    </header>
+
+    <div class="container">
+      <div class="filters">
+        <input type="text" id="searchInput" placeholder="Buscar productos..." />
+        <button id="searchBtn">Buscar</button>
+      </div>
+
+      <div class="inventory-grid" id="inventoryContainer">
+        <!-- Los productos se cargarán aquí -->
+      </div>
+    </div>
+
+    <div id="notifications-container"></div>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/home.js"></script>
+  </body>
+</html>
