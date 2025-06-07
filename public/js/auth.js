@@ -39,14 +39,34 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     }
 });
 
-// Función para cerrar sesión
+// CORRECCIÓN: Confirmación para cerrar sesión
 function logout() {
-    fetch('/api/logout')
-        .then(() => {
-            sessionStorage.removeItem('loggedin');
-            sessionStorage.removeItem('userRol');
-            window.location.href = 'index.html';
-        });
+    // Confirmar antes de cerrar sesión
+    if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+        try {
+            fetch('/api/logout')
+                .then(response => {
+                    if (!response.ok) throw new Error('Error en el servidor');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        sessionStorage.removeItem('loggedin');
+                        sessionStorage.removeItem('userRol');
+                        window.location.href = 'index.html';
+                    } else {
+                        throw new Error('Error al cerrar sesión');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en logout:', error);
+                    showNotification('Error al cerrar sesión', 'error');
+                });
+        } catch (error) {
+            console.error('Error inesperado en logout:', error);
+            showNotification('Error inesperado al cerrar sesión', 'error');
+        }
+    }
 }
 
 // Asignar evento de logout

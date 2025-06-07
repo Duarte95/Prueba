@@ -13,6 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelProductBtn.addEventListener('click', hideProductForm);
     productForm.addEventListener('submit', saveProduct);
 
+    // Ocultar menú "Usuarios" si no es admin (aunque solo admin debería ver esto)
+    const userRol = sessionStorage.getItem('userRol');
+    if (userRol !== 'admin') {
+        document.querySelectorAll('a[href="usuarios.html"]').forEach(el => {
+            el.style.display = 'none';
+        });
+    }
+
     loadProducts();
 
     function showProductForm() {
