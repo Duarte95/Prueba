@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     if (!checkSession()) return;
 
+    // Elementos DOM
     const logoutBtn = document.getElementById('logout');
     const addProductBtn = document.getElementById('addProductBtn');
     const cancelProductBtn = document.getElementById('cancelProductBtn');
@@ -11,10 +12,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const productNameInput = document.getElementById('productName');
     const productBrandSelect = document.getElementById('productBrand');
 
+    // Event listeners
     logoutBtn.addEventListener('click', logout);
     addProductBtn.addEventListener('click', showProductForm);
     cancelProductBtn.addEventListener('click', hideProductForm);
     productForm.addEventListener('submit', saveProduct);
+
+    // Ocultar menú "Usuarios" si no es admin
+    const userRol = sessionStorage.getItem('userRol');
+    if (userRol !== 'admin') {
+        document.querySelectorAll('a[href="usuarios.html"], a[href="ajustes.html"]').forEach(el => {
+            el.style.display = 'none';
+        });
+    }
 
     // Cargar catálogos y productos
     loadCatalogos();
@@ -30,35 +40,47 @@ document.addEventListener('DOMContentLoaded', () => {
         productFormContainer.classList.add('hidden');
     }
 
-    // Cargar catálogos desde localStorage
-    function loadCatalogos() {
-        const prendas = JSON.parse(localStorage.getItem('catalogo_prendas') || '[]');
-        const marcas = JSON.parse(localStorage.getItem('catalogo_marcas') || '[]');
+    // Cargar catálogos desde el backend
+    async function loadCatalogos() {
+        try {
+            // Cargar prendas
+            const prendasResponse = await fetch('/api/catalogo/prendas');
+            if (!prendasResponse.ok) throw new Error('Error al cargar prendas');
+            const prendas = await prendasResponse.json();
 
-        // Llenar select de códigos
-        productCodeSelect.innerHTML = '<option value="">Seleccione un código</option>';
-        prendas.forEach(prenda => {
-            const option = document.createElement('option');
-            option.value = prenda.codigo;
-            option.textContent = `${prenda.codigo} - ${prenda.nombre}`;
-            option.dataset.nombre = prenda.nombre;
-            productCodeSelect.appendChild(option);
-        });
+            // Cargar marcas
+            const marcasResponse = await fetch('/api/catalogo/marcas');
+            if (!marcasResponse.ok) throw new Error('Error al cargar marcas');
+            const marcas = await marcasResponse.json();
 
-        // Llenar select de marcas
-        productBrandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
-        marcas.forEach(marca => {
-            const option = document.createElement('option');
-            option.value = marca.id;
-            option.textContent = marca.nombre;
-            productBrandSelect.appendChild(option);
-        });
+            // Llenar select de códigos
+            productCodeSelect.innerHTML = '<option value="">Seleccione un código</option>';
+            prendas.forEach(prenda => {
+                const option = document.createElement('option');
+                option.value = prenda.codigo;
+                option.textContent = `${prenda.codigo} - ${prenda.nombre}`;
+                option.dataset.nombre = prenda.nombre;
+                productCodeSelect.appendChild(option);
+            });
 
-        // Evento para autocompletar nombre al seleccionar código
-        productCodeSelect.addEventListener('change', function () {
-            const selectedOption = this.options[this.selectedIndex];
-            productNameInput.value = selectedOption.dataset.nombre || '';
-        });
+            // Llenar select de marcas
+            productBrandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+            marcas.forEach(marca => {
+                const option = document.createElement('option');
+                option.value = marca.id;
+                option.textContent = marca.nombre;
+                productBrandSelect.appendChild(option);
+            });
+
+            // Evento para autocompletar nombre al seleccionar código
+            productCodeSelect.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                productNameInput.value = selectedOption.dataset.nombre || '';
+            });
+
+        } catch (error) {
+            showNotification(`Error: ${error.message}`, 'error');
+        }
     }
 
     function validateProduct() {
@@ -96,10 +118,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const product = {
             id: document.getElementById('productId').value,
-            codigo: productCodeSelect.value,
-            nombre: productNameInput.value,
+            catalogo_codigo: productCodeSelect.value,
             color: document.getElementById('productColor').value,
-            marca: productBrandSelect.options[productBrandSelect.selectedIndex].textContent,
+            catalogo_marca: productBrandSelect.value,
             cantidad: document.getElementById('productQuantity').value
         };
 
@@ -140,25 +161,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ... (resto del código: loadProducts, renderProducts, editProduct, deleteProduct)
-    // Mantener las funciones existentes sin cambios
-
     async function loadProducts() {
         try {
             // Mostrar spinner principal
             productListContainer.innerHTML = '<div class="spinner"></div>';
 
             const response = await fetch('/api/productos');
-
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error('Error al cargar productos');
 
             const products = await response.json();
             renderProducts(products);
         } catch (error) {
-            console.error('Error al cargar productos:', error);
-            showNotification('Error al cargar productos: ' + error.message, 'error');
+            showNotification(`Error: ${error.message}`, 'error');
             productListContainer.innerHTML = '<p class="empty">Error al cargar productos</p>';
         }
     }
@@ -190,9 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <tbody>
           ${products.map(product => `
             <tr>
-              <td>${product.codigo}</td>
-              <td>${product.nombre}</td>
-              <td>${product.marca}</td>
+              <td>${product.catalogo_codigo}</td>
+              <td>${product.producto_nombre}</td>
+              <td>${product.marca_nombre}</td>
               <td>${product.color}</td>
               <td>${product.cantidad}</td>
               <td>
@@ -226,10 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editButton.innerHTML = '<i class="spinner mini"></i> Cargando...';
 
             const response = await fetch(`/api/productos/${id}`);
-
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error('Error al cargar producto');
 
             const product = await response.json();
 
@@ -238,18 +249,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Cargar datos en el formulario
             document.getElementById('productId').value = product.id;
-            document.getElementById('productCode').value = product.codigo;
-            document.getElementById('productName').value = product.nombre;
+
+            // Seleccionar código
+            productCodeSelect.value = product.catalogo_codigo;
+
+            // Disparar evento change para actualizar nombre
+            const event = new Event('change');
+            productCodeSelect.dispatchEvent(event);
+
             document.getElementById('productColor').value = product.color;
-            document.getElementById('productBrand').value = product.marca;
             document.getElementById('productQuantity').value = product.cantidad;
+
+            // Seleccionar marca
+            productBrandSelect.value = product.catalogo_marca;
 
             // Mostrar el formulario
             showProductForm();
 
         } catch (error) {
-            console.error('Error en editarProducto:', error);
-            showNotification(`Error al cargar el producto: ${error.message}`, 'error');
+            showNotification(`Error: ${error.message}`, 'error');
 
             // Restaurar el botón en caso de error
             const editButton = document.querySelector(`.btn-edit[data-id="${id}"]`);

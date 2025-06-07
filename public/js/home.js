@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ocultar menú "Usuarios" si no es admin
     const userRol = sessionStorage.getItem('userRol');
     if (userRol !== 'admin') {
-        document.querySelectorAll('a[href="usuarios.html"]').forEach(el => {
+        document.querySelectorAll('a[href="usuarios.html"], a[href="ajustes.html"]').forEach(el => {
             el.style.display = 'none';
         });
     }
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const productos = await response.json();
             renderProducts(productos);
         } catch (error) {
-            showNotification('Error al cargar productos', 'error');
+            showNotification(`Error: ${error.message}`, 'error');
             inventoryContainer.innerHTML = '<p class="empty">Error al cargar productos</p>';
         }
     }
@@ -54,9 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
             productCard.innerHTML = `
-          <h3>${product.nombre}</h3>
-          <p><strong>Código:</strong> ${product.codigo}</p>
-          <p><strong>Marca:</strong> ${product.marca}</p>
+          <h3>${product.producto_nombre}</h3>
+          <p><strong>Código:</strong> ${product.catalogo_codigo}</p>
+          <p><strong>Marca:</strong> ${product.marca_nombre}</p>
           <p><strong>Color:</strong> ${product.color}</p>
           <p><strong>Cantidad:</strong> ${product.cantidad}</p>
         `;
