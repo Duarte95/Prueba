@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ajustes - Sistema de Inventario</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Configuración del Sistema</h1>
+      <nav>
+        <a href="home.html">Inicio</a>
+        <a href="almacen.html">Almacén</a>
+        <a href="usuarios.html">Usuarios</a>
+        <a href="ajustes.html" class="active">Ajustes</a>
+        <a href="#" id="logout">Cerrar Sesión</a>
+      </nav>
+    </header>
+
+    <div class="container">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="prendas">Prendas</button>
+        <button class="tab-btn" data-tab="marcas">Marcas</button>
+      </div>
+
+      <!-- Sección Catálogo de Prendas -->
+      <div id="prendas-tab" class="tab-content active">
+        <h2>Catálogo de Prendas</h2>
+        <button id="addPrendaBtn">Agregar Prenda</button>
+
+        <div id="prendaFormContainer" class="hidden">
+          <form id="prendaForm">
+            <div class="form-group">
+              <label for="prendaCodigo">Código:</label>
+              <input type="text" id="prendaCodigo" required />
+            </div>
+            <div class="form-group">
+              <label for="prendaNombre">Nombre:</label>
+              <input type="text" id="prendaNombre" required />
+            </div>
+            <div class="form-actions">
+              <button type="submit">Guardar</button>
+              <button type="button" id="cancelPrendaBtn">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="catalogo-list" id="prendasListContainer">
+          <!-- Lista de prendas se cargará aquí -->
+        </div>
+      </div>
+
+      <!-- Sección Catálogo de Marcas -->
+      <div id="marcas-tab" class="tab-content">
+        <h2>Catálogo de Marcas</h2>
+        <button id="addMarcaBtn">Agregar Marca</button>
+
+        <div id="marcaFormContainer" class="hidden">
+          <form id="marcaForm">
+            <div class="form-group">
+              <label for="marcaNombre">Nombre:</label>
+              <input type="text" id="marcaNombre" required />
+            </div>
+            <div class="form-actions">
+              <button type="submit">Guardar</button>
+              <button type="button" id="cancelMarcaBtn">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="catalogo-list" id="marcasListContainer">
+          <!-- Lista de marcas se cargará aquí -->
+        </div>
+      </div>
+    </div>
+
+    <div id="notifications-container"></div>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ajustes.js"></script>
+  </body>
+</html>

@@ -7,21 +7,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const productForm = document.getElementById('productForm');
     const productFormContainer = document.getElementById('productFormContainer');
     const productListContainer = document.getElementById('productListContainer');
+    const productCodeSelect = document.getElementById('productCode');
+    const productNameInput = document.getElementById('productName');
+    const productBrandSelect = document.getElementById('productBrand');
 
     logoutBtn.addEventListener('click', logout);
-
-    addProductBtn.addEventListener('click', () => {
-        productForm.reset();
-        document.getElementById('productId').value = '';
-        showProductForm();
-    });
-
+    addProductBtn.addEventListener('click', showProductForm);
     cancelProductBtn.addEventListener('click', hideProductForm);
     productForm.addEventListener('submit', saveProduct);
 
+    // Cargar catálogos y productos
+    loadCatalogos();
     loadProducts();
 
     function showProductForm() {
+        productForm.reset();
+        document.getElementById('productId').value = '';
         productFormContainer.classList.remove('hidden');
     }
 
@@ -29,18 +30,55 @@ document.addEventListener('DOMContentLoaded', () => {
         productFormContainer.classList.add('hidden');
     }
 
+    // Cargar catálogos desde localStorage
+    function loadCatalogos() {
+        const prendas = JSON.parse(localStorage.getItem('catalogo_prendas') || '[]');
+        const marcas = JSON.parse(localStorage.getItem('catalogo_marcas') || '[]');
+
+        // Llenar select de códigos
+        productCodeSelect.innerHTML = '<option value="">Seleccione un código</option>';
+        prendas.forEach(prenda => {
+            const option = document.createElement('option');
+            option.value = prenda.codigo;
+            option.textContent = `${prenda.codigo} - ${prenda.nombre}`;
+            option.dataset.nombre = prenda.nombre;
+            productCodeSelect.appendChild(option);
+        });
+
+        // Llenar select de marcas
+        productBrandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+        marcas.forEach(marca => {
+            const option = document.createElement('option');
+            option.value = marca.id;
+            option.textContent = marca.nombre;
+            productBrandSelect.appendChild(option);
+        });
+
+        // Evento para autocompletar nombre al seleccionar código
+        productCodeSelect.addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            productNameInput.value = selectedOption.dataset.nombre || '';
+        });
+    }
+
     function validateProduct() {
-        const codigo = document.getElementById('productCode').value.trim();
-        const nombre = document.getElementById('productName').value.trim();
+        const codigo = productCodeSelect.value;
+        const nombre = productNameInput.value;
+        const marca = productBrandSelect.value;
         const cantidad = document.getElementById('productQuantity').value;
 
         if (!codigo) {
-            showNotification('El código es obligatorio', 'error');
+            showNotification('Debe seleccionar un código', 'error');
             return false;
         }
 
         if (!nombre) {
-            showNotification('El nombre es obligatorio', 'error');
+            showNotification('El nombre no puede estar vacío', 'error');
+            return false;
+        }
+
+        if (!marca) {
+            showNotification('Debe seleccionar una marca', 'error');
             return false;
         }
 
@@ -58,10 +96,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const product = {
             id: document.getElementById('productId').value,
-            codigo: document.getElementById('productCode').value,
-            nombre: document.getElementById('productName').value,
+            codigo: productCodeSelect.value,
+            nombre: productNameInput.value,
             color: document.getElementById('productColor').value,
-            marca: document.getElementById('productBrand').value,
+            marca: productBrandSelect.options[productBrandSelect.selectedIndex].textContent,
             cantidad: document.getElementById('productQuantity').value
         };
 
@@ -84,20 +122,15 @@ document.addEventListener('DOMContentLoaded', () => {
             submitButton.disabled = false;
 
             if (response.ok) {
-                const result = await response.json();
-                if (result.changes === 0) {
-                    throw new Error('No se realizaron cambios en el producto');
-                }
                 showNotification('Producto guardado correctamente', 'success');
                 hideProductForm();
                 loadProducts();
             } else {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error en el servidor');
+                const error = await response.json();
+                showNotification(`Error: ${error.error}`, 'error');
             }
         } catch (error) {
-            console.error('Error en saveProduct:', error);
-            showNotification(`Error al guardar: ${error.message}`, 'error');
+            showNotification('Error de conexión', 'error');
 
             const submitButton = productForm.querySelector('button[type="submit"]');
             if (submitButton) {
@@ -106,6 +139,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
+
+    // ... (resto del código: loadProducts, renderProducts, editProduct, deleteProduct)
+    // Mantener las funciones existentes sin cambios
 
     async function loadProducts() {
         try {

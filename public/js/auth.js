@@ -74,12 +74,25 @@ if (document.getElementById('logout')) {
     document.getElementById('logout').addEventListener('click', logout);
 }
 
+// ... (código existente)
+
 // Ocultar menú "Usuarios" al cargar páginas si no es admin
 document.addEventListener('DOMContentLoaded', () => {
     const userRol = sessionStorage.getItem('userRol');
+
+    // Ocultar menús según rol
     if (userRol && userRol !== 'admin') {
-        document.querySelectorAll('a[href="usuarios.html"]').forEach(el => {
+        document.querySelectorAll('a[href="usuarios.html"], a[href="ajustes.html"]').forEach(el => {
             el.style.display = 'none';
         });
+    }
+
+    // Mostrar nombre de usuario si está disponible
+    const username = sessionStorage.getItem('username');
+    if (username) {
+        const userElement = document.getElementById('currentUser');
+        if (userElement) {
+            userElement.textContent = username;
+        }
     }
 });
