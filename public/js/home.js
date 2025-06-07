@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const searchTerm = searchInput.value.trim();
             const response = await fetch('/api/productos?search=' + encodeURIComponent(searchTerm));
+
+            if (!response.ok) throw new Error('Error al cargar productos');
+
             const productos = await response.json();
             renderProducts(productos);
         } catch (error) {

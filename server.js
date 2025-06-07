@@ -136,6 +136,15 @@ app.get('/api/productos', (req, res) => {
     });
 });
 
+// Obtener un solo producto por ID
+app.get('/api/productos/:id', (req, res) => {
+    db.get('SELECT * FROM productos WHERE id = ?', [req.params.id], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: 'Producto no encontrado' });
+        res.json(row);
+    });
+});
+
 app.post('/api/productos', requireLogin, (req, res) => {
     const { codigo, nombre, color, marca, cantidad } = req.body;
     db.run(
@@ -148,27 +157,43 @@ app.post('/api/productos', requireLogin, (req, res) => {
     );
 });
 
+// CORRECCIÓN: Problema en ruta PUT
 app.put('/api/productos/:id', requireLogin, (req, res) => {
     const { codigo, nombre, color, marca, cantidad } = req.body;
-    db.run(
-        `UPDATE productos SET 
-      codigo = ?, 
-      nombre = ?, 
-      color = ?, 
-      marca = ?, 
-      cantidad = ?
-    WHERE id = ?`,
-        [codigo, nombre, color, marca, cantidad, req.params.id],
-        function (err) {
-            if (err) return res.status(400).json({ error: err.message });
-            res.json({ changes: this.changes });
-        }
-    );
+
+    // Validación básica
+    if (!codigo || !nombre || !marca || cantidad === undefined) {
+        return res.status(400).json({ error: 'Datos incompletos' });
+    }
+
+    // Verificar si el producto existe
+    db.get('SELECT id FROM productos WHERE id = ?', [req.params.id], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: 'Producto no encontrado' });
+
+        // Actualizar el producto
+        db.run(
+            `UPDATE productos SET 
+                codigo = ?, 
+                nombre = ?, 
+                color = ?, 
+                marca = ?, 
+                cantidad = ?
+            WHERE id = ?`,
+            [codigo, nombre, color, marca, cantidad, req.params.id],
+            function (err) {
+                if (err) {
+                    console.error('Error en actualización:', err);
+                    return res.status(400).json({ error: err.message });
+                }
+                res.json({ changes: this.changes });
+            }
+        );
+    });
 });
 
-// CORRECCIÓN: Solo admin puede eliminar productos
+// Solo admin puede eliminar productos
 app.delete('/api/productos/:id', requireLogin, (req, res) => {
-    // Verificar si el usuario es admin
     if (req.session.user.rol !== 'admin') {
         return res.status(403).json({ error: 'Acceso no autorizado' });
     }

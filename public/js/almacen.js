@@ -9,23 +9,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const productListContainer = document.getElementById('productListContainer');
 
     logoutBtn.addEventListener('click', logout);
-    addProductBtn.addEventListener('click', showProductForm);
+
+    addProductBtn.addEventListener('click', () => {
+        productForm.reset();
+        document.getElementById('productId').value = '';
+        showProductForm();
+    });
+
     cancelProductBtn.addEventListener('click', hideProductForm);
     productForm.addEventListener('submit', saveProduct);
-
-    // Ocultar menú "Usuarios" si no es admin (aunque solo admin debería ver esto)
-    const userRol = sessionStorage.getItem('userRol');
-    if (userRol !== 'admin') {
-        document.querySelectorAll('a[href="usuarios.html"]').forEach(el => {
-            el.style.display = 'none';
-        });
-    }
 
     loadProducts();
 
     function showProductForm() {
-        productForm.reset();
-        document.getElementById('productId').value = '';
         productFormContainer.classList.remove('hidden');
     }
 
@@ -73,32 +69,60 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = product.id ? `/api/productos/${product.id}` : '/api/productos';
 
         try {
+            const submitButton = productForm.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.innerHTML = '<i class="spinner mini"></i> Guardando...';
+            submitButton.disabled = true;
+
             const response = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(product)
             });
 
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+
             if (response.ok) {
+                const result = await response.json();
+                if (result.changes === 0) {
+                    throw new Error('No se realizaron cambios en el producto');
+                }
                 showNotification('Producto guardado correctamente', 'success');
                 hideProductForm();
                 loadProducts();
             } else {
-                const error = await response.json();
-                showNotification(`Error: ${error.error}`, 'error');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error en el servidor');
             }
         } catch (error) {
-            showNotification('Error de conexión', 'error');
+            console.error('Error en saveProduct:', error);
+            showNotification(`Error al guardar: ${error.message}`, 'error');
+
+            const submitButton = productForm.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.textContent = 'Guardar';
+                submitButton.disabled = false;
+            }
         }
     }
 
     async function loadProducts() {
         try {
+            // Mostrar spinner principal
+            productListContainer.innerHTML = '<div class="spinner"></div>';
+
             const response = await fetch('/api/productos');
+
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+
             const products = await response.json();
             renderProducts(products);
         } catch (error) {
-            showNotification('Error al cargar productos', 'error');
+            console.error('Error al cargar productos:', error);
+            showNotification('Error al cargar productos: ' + error.message, 'error');
             productListContainer.innerHTML = '<p class="empty">Error al cargar productos</p>';
         }
     }
@@ -146,6 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         productListContainer.appendChild(table);
 
+        // Agregar event listeners
         table.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => editProduct(btn.dataset.id));
         });
@@ -159,9 +184,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function editProduct(id) {
         try {
+            // Mostrar indicador en el botón
+            const editButton = document.querySelector(`.btn-edit[data-id="${id}"]`);
+            const originalText = editButton.textContent;
+            editButton.innerHTML = '<i class="spinner mini"></i> Cargando...';
+
             const response = await fetch(`/api/productos/${id}`);
+
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+
             const product = await response.json();
 
+            // Restaurar el botón
+            editButton.textContent = originalText;
+
+            // Cargar datos en el formulario
             document.getElementById('productId').value = product.id;
             document.getElementById('productCode').value = product.codigo;
             document.getElementById('productName').value = product.nombre;
@@ -169,9 +208,18 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('productBrand').value = product.marca;
             document.getElementById('productQuantity').value = product.cantidad;
 
+            // Mostrar el formulario
             showProductForm();
+
         } catch (error) {
-            showNotification('Error al cargar el producto', 'error');
+            console.error('Error en editarProducto:', error);
+            showNotification(`Error al cargar el producto: ${error.message}`, 'error');
+
+            // Restaurar el botón en caso de error
+            const editButton = document.querySelector(`.btn-edit[data-id="${id}"]`);
+            if (editButton) {
+                editButton.textContent = 'Editar';
+            }
         }
     }
 
@@ -179,9 +227,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm('¿Estás seguro de eliminar este producto?')) return;
 
         try {
+            // Mostrar indicador en el botón
+            const deleteButton = document.querySelector(`.btn-delete[data-id="${id}"]`);
+            const originalText = deleteButton.textContent;
+            deleteButton.innerHTML = '<i class="spinner mini"></i> Eliminando...';
+
             const response = await fetch(`/api/productos/${id}`, {
                 method: 'DELETE'
             });
+
+            // Restaurar botón
+            deleteButton.textContent = originalText;
 
             if (response.ok) {
                 showNotification('Producto eliminado', 'success');
@@ -192,6 +248,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             showNotification('Error de conexión', 'error');
+
+            // Restaurar botón en caso de error
+            const deleteButton = document.querySelector(`.btn-delete[data-id="${id}"]`);
+            if (deleteButton) {
+                deleteButton.textContent = 'Eliminar';
+            }
         }
     }
 });
