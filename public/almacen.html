@@ -1,81 +1,123 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Almacén</title>
-    <link rel="stylesheet" href="css/styles.css" />
-  </head>
-  <body>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
     <header>
-      <h1>Gestión de Almacén</h1>
-      <nav>
-        <a href="home.html">Inicio</a>
-        <a href="almacen.html" class="active">Almacén</a>
-        <a href="usuarios.html">Usuarios</a>
-        <a href="ajustes.html">Ajustes</a>
-        <!-- Nuevo enlace -->
-        <a href="#" id="logout">Cerrar Sesión</a>
-      </nav>
+        <h1>Gestión de Almacén</h1>
+        <nav>
+            <a href="home.html">Inicio</a>
+            <a href="almacen.html" class="active">Almacén</a>
+            <a href="historicos.html">Históricos</a>
+            <a href="usuarios.html">Usuarios</a>
+            <a href="ajustes.html">Ajustes</a>
+            <a href="#" id="logout">Cerrar Sesión</a>
+        </nav>
     </header>
 
     <div class="container">
-      <button id="addProductBtn">Agregar Producto</button>
+        <!-- Pestañas para Entradas/Salidas -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="entradas">Entradas</button>
+            <button class="tab-btn" data-tab="salidas">Salidas</button>
+        </div>
 
-      <div id="productFormContainer" class="hidden">
-        <h2>Nuevo Producto</h2>
-        <form id="productForm">
-          <input type="hidden" id="productId" />
+        <!-- Pestaña de Entradas (existente) -->
+        <div id="entradas-tab" class="tab-content active">
+            <button id="addProductBtn">Agregar Producto</button>
 
-          <!-- Código ahora es un select -->
-          <div class="form-group">
-            <label for="productCode">Código:</label>
-            <select id="productCode" required>
-              <option value="">Seleccione un código</option>
-              <!-- Opciones se cargarán dinámicamente -->
-            </select>
-          </div>
+            <div id="productFormContainer" class="hidden">
+                <h2>Nuevo Producto</h2>
+                <form id="productForm">
+                    <input type="hidden" id="productId" />
 
-          <!-- Nombre ahora es de solo lectura -->
-          <div class="form-group">
-            <label for="productName">Nombre:</label>
-            <input type="text" id="productName" readonly />
-          </div>
+                    <div class="form-group">
+                        <label for="productCode">Código:</label>
+                        <select id="productCode" required>
+                            <option value="">Seleccione un código</option>
+                            <!-- Opciones se cargarán dinámicamente -->
+                        </select>
+                    </div>
 
-          <div class="form-group">
-            <label for="productColor">Color:</label>
-            <input type="text" id="productColor" required />
-          </div>
+                    <div class="form-group">
+                        <label for="productName">Nombre:</label>
+                        <input type="text" id="productName" readonly />
+                    </div>
 
-          <!-- Marca ahora es un select -->
-          <div class="form-group">
-            <label for="productBrand">Marca:</label>
-            <select id="productBrand" required>
-              <option value="">Seleccione una marca</option>
-              <!-- Opciones se cargarán dinámicamente -->
-            </select>
-          </div>
+                    <div class="form-group">
+                        <label for="productColor">Color:</label>
+                        <input type="text" id="productColor" required />
+                    </div>
 
-          <div class="form-group">
-            <label for="productQuantity">Cantidad:</label>
-            <input type="number" id="productQuantity" min="0" required />
-          </div>
+                    <div class="form-group">
+                        <label for="productBrand">Marca:</label>
+                        <select id="productBrand" required>
+                            <option value="">Seleccione una marca</option>
+                            <!-- Opciones se cargarán dinámicamente -->
+                        </select>
+                    </div>
 
-          <div class="form-actions">
-            <button type="submit">Guardar</button>
-            <button type="button" id="cancelProductBtn">Cancelar</button>
-          </div>
-        </form>
-      </div>
+                    <div class="form-group">
+                        <label for="productQuantity">Cantidad:</label>
+                        <input type="number" id="productQuantity" min="0" required />
+                    </div>
 
-      <div class="product-list" id="productListContainer">
-        <!-- Productos se cargarán aquí -->
-      </div>
+                    <div class="form-actions">
+                        <button type="submit">Guardar</button>
+                        <button type="button" id="cancelProductBtn">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="product-list" id="productListContainer">
+                <!-- Productos se cargarán aquí -->
+            </div>
+        </div>
+
+        <!-- Nueva pestaña de Salidas -->
+        <div id="salidas-tab" class="tab-content">
+            <h2>Registrar Salida de Productos</h2>
+            
+            <form id="saleForm">
+                <div class="form-group">
+                    <label for="saleProduct">Producto:</label>
+                    <select id="saleProduct" required>
+                        <option value="">Seleccione un producto</option>
+                        <!-- Opciones se cargarán dinámicamente -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Disponible:</label>
+                    <span id="availableQuantity">0</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="saleQuantity">Cantidad:</label>
+                    <input type="number" id="saleQuantity" min="1" required />
+                </div>
+                
+                <div class="form-group">
+                    <label for="saleNotes">Observaciones:</label>
+                    <input type="text" id="saleNotes" placeholder="A quién se entregó, motivo, etc." required/>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit">Registrar Salida</button>
+                </div>
+            </form>
+            
+            <div id="saleMessage" class="message"></div>
+        </div>
     </div>
 
     <div id="notifications-container"></div>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/almacen.js"></script>
-  </body>
+</body>
 </html>

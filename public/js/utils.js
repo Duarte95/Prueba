@@ -30,3 +30,13 @@ function showNotification(message, type) {
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
+
+// En utils.js añadir:
+function setupNavigation() {
+  const userRol = sessionStorage.getItem('userRol');
+  if (userRol !== 'admin') {
+    document.querySelectorAll('a[href="usuarios.html"], a[href="ajustes.html"]').forEach(el => {
+      el.style.display = 'none';
+    });
+  }
+}
